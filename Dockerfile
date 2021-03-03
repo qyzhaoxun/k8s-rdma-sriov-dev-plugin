@@ -17,5 +17,5 @@ RUN go install -ldflags "-s -w -X main.GitCommitId=$GIT_COMMIT" ./
 
 # runtime image
 FROM gcr.io/google_containers/ubuntu-slim:0.14
-COPY --from=builder /go/bin/ /bin/k8s-rdma-sriov-dp
-ENTRYPOINT ["/bin/k8s-rdma-sriov-dp"]
+COPY --from=builder /go/bin/k8s-rdma-sriov-dev-plugin /bin/k8s-rdma-sriov-dev-plugin
+ENTRYPOINT ["/bin/k8s-rdma-sriov-dev-plugin"]
