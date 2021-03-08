@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -27,6 +28,8 @@ const (
 
 const (
 	RdmaDevices = "/dev/infiniband"
+	SleepPeriod = time.Second * time.Duration(5)
+	SleepTimeout = 10
 )
 
 type UserConfig struct {
@@ -49,11 +52,29 @@ type RdmaDevPlugin struct {
 func configSriov(pfNetdevName string) (*sriovnet.PfNetdevHandle, error) {
 	var err error
 
-	err = sriovnet.EnableSriov(pfNetdevName)
-	if err != nil {
-		fmt.Println("Fail to enable sriov for netdev =", pfNetdevName)
-		return nil, err
+	if enableSriov == false {
+		sleepCount := 0
+		for ; sleepCount < SleepTimeout; {
+			enabled := sriovnet.IsSriovEnabled(pfNetdevName)
+			if enabled {
+				fmt.Println("Already enable sriov for netdev =", pfNetdevName)
+				break
+			}
+			sleepCount++
+			time.Sleep(SleepPeriod)
+		}
+		if sleepCount == SleepTimeout {
+			err := errors.New("Waiting for sriov enable timeout")
+			return nil, err
+		}
+	} else {
+		err = sriovnet.EnableSriov(pfNetdevName)
+		if err != nil {
+			fmt.Println("Fail to enable sriov for netdev =", pfNetdevName)
+			return nil, err
+		}
 	}
+
 	pfHandle, err := sriovnet.GetPfNetdevHandle(pfNetdevName)
 	if err != nil {
 		fmt.Println("Fail to get Pf handle for netdev =", pfNetdevName)
