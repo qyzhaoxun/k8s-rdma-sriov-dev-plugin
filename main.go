@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -14,13 +15,16 @@ import (
 
 const (
 	ConfigFilePath = "/k8s-rdma-sriov-dev-plugin/config.json"
-)
-
-const (
 	RdmaSriovDpVersion = "0.2"
 )
 
+
+var (
+	enableSriov         bool
+)
+
 func main() {
+	flag.Parse()
 	log.Println("Starting K8s RDMA SRIOV Device Plugin version=", RdmaSriovDpVersion)
 
 	log.Println("Starting FS watcher.")
@@ -93,4 +97,8 @@ L:
 			}
 		}
 	}
+}
+
+func init() {
+	flag.BoolVar(&enableSriov, "enable sriov or not", false, "Should RDMA SRIOV enable SRIOV or not.")
 }
